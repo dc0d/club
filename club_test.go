@@ -33,3 +33,12 @@ func TestApp(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestErrors(t *testing.T) {
+	var es Errors
+	es = append(es, Error(`ONE`))
+	es = append(es, Error(`TWO`))
+	if es.String() != `[ONE] [TWO]` {
+		t.Fail()
+	}
+}

@@ -18,19 +18,35 @@ func (v Error) Error() string { return string(v) }
 // Errors .
 type Errors []error
 
+func (x Errors) String() string {
+	return x.Error()
+}
+
 func (x Errors) Error() string {
 	if x == nil {
 		return ``
 	}
-	var buff bytes.Buffer
+
+	buff := bufferPool.Get().(*bytes.Buffer)
+	buff.Reset()
+
 	for _, ve := range x {
 		if ve == nil {
 			continue
 		}
-		buff.WriteString(` [` + ve.Error() + `] `)
+		buff.WriteString(` [` + ve.Error() + `]`)
 	}
 	res := strings.TrimSpace(buff.String())
+
+	bufferPool.Put(buff)
+
 	return res
+}
+
+var bufferPool = sync.Pool{
+	New: func() interface{} {
+		return &bytes.Buffer{}
+	},
 }
 
 //-----------------------------------------------------------------------------
