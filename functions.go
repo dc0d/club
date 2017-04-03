@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"syscall"
 	"time"
+
+	"github.com/dc0d/goroutines"
 )
 
 //-----------------------------------------------------------------------------
@@ -24,9 +26,12 @@ func init() {
 // Finit use to prevent app from stopping/exiting
 func Finit(timeout time.Duration, nap ...time.Duration) {
 	<-AppCtx.Done()
-	werr := WaitGo(func() {
-		AppPool.Wait()
-	}, timeout)
+	werr := goroutines.New().
+		WaitStart().
+		WaitGo(timeout).
+		Go(func() {
+			AppPool.Wait()
+		})
 	if werr != nil {
 		log.Println(`error:`, werr)
 	}
@@ -38,50 +43,6 @@ func Finit(timeout time.Duration, nap ...time.Duration) {
 		s = time.Millisecond * 300
 	}
 	<-time.After(s)
-}
-
-//-----------------------------------------------------------------------------
-
-// WaitGo waits for f to complete (in a goroutine)
-// or times out (returning ErrTimeout)
-func WaitGo(f func(), timeout ...time.Duration) error {
-	funcDone := make(chan struct{})
-	go func() {
-		defer close(funcDone)
-		f()
-	}()
-
-	var delay time.Duration
-	if len(timeout) > 0 {
-		delay = timeout[0]
-	}
-
-	if delay <= 0 {
-		<-funcDone
-
-		return nil
-	}
-
-	select {
-	case <-time.After(delay):
-		return ErrTimeout
-	case <-funcDone:
-	}
-
-	return nil
-}
-
-//-----------------------------------------------------------------------------
-
-// WaitStart starts a goroutine and wait for it to start, and after goroutine
-// started, it returns.
-func WaitStart(f func()) {
-	started := make(chan struct{})
-	go func() {
-		close(started)
-		f()
-	}()
-	<-started
 }
 
 //-----------------------------------------------------------------------------
