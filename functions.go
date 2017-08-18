@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -61,11 +60,11 @@ func TimerScope(name string, opCount ...int) func() {
 			name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
 		}
 	}
-	log.Println(name, `started`)
+	log.Info(name, `started`)
 	start := time.Now()
 	return func() {
 		elapsed := time.Now().Sub(start)
-		log.Printf("%s took %v", name, elapsed)
+		log.Infof("%s took %v", name, elapsed)
 		if len(opCount) == 0 {
 			return
 		}
@@ -78,17 +77,17 @@ func TimerScope(name string, opCount ...int) func() {
 		E := float64(elapsed)
 		FRC := E / float64(N)
 
-		log.Printf("op/sec %.2f", float64(N)/(E/float64(time.Second)))
+		log.Infof("op/sec %.2f", float64(N)/(E/float64(time.Second)))
 
 		switch {
 		case FRC > float64(time.Second):
-			log.Printf("sec/op %.2f", (E/float64(time.Second))/float64(N))
+			log.Infof("sec/op %.2f", (E/float64(time.Second))/float64(N))
 		case FRC > float64(time.Millisecond):
-			log.Printf("milli-sec/op %.2f", (E/float64(time.Millisecond))/float64(N))
+			log.Infof("milli-sec/op %.2f", (E/float64(time.Millisecond))/float64(N))
 		case FRC > float64(time.Microsecond):
-			log.Printf("micro-sec/op %.2f", (E/float64(time.Microsecond))/float64(N))
+			log.Infof("micro-sec/op %.2f", (E/float64(time.Microsecond))/float64(N))
 		default:
-			log.Printf("nano-sec/op %.2f", (E/float64(time.Nanosecond))/float64(N))
+			log.Infof("nano-sec/op %.2f", (E/float64(time.Nanosecond))/float64(N))
 		}
 	}
 }
@@ -186,12 +185,12 @@ func Supervise(action func() error, intensity int, period ...time.Duration) {
 	}
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println(r)
+			log.Error(r)
 			retry()
 		}
 	}()
 	if err := action(); err != nil {
-		log.Println(err)
+		log.Error(err)
 		retry()
 	}
 }
@@ -272,7 +271,7 @@ func Finit(timeout time.Duration, cancelApp ...bool) {
 	select {
 	case <-done:
 	case <-time.After(timeout):
-		log.Println(fmt.Errorf("TIMEOUT"))
+		log.Error(fmt.Errorf("TIMEOUT"))
 	}
 }
 
