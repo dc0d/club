@@ -14,6 +14,7 @@ import (
 type Registry struct {
 	ctx                context.Context
 	expirationInterval time.Duration
+	onExpire           func(k, v interface{})
 
 	rwx          sync.RWMutex
 	values       map[interface{}]interface{}
@@ -43,6 +44,9 @@ func NewRegistry(ctx context.Context, expirationInterval time.Duration) *Registr
 	go res._expireLoop()
 	return res
 }
+
+// SetOnExpire .
+func (rg *Registry) SetOnExpire(onExpire func(k, v interface{})) { rg.onExpire = onExpire }
 
 // Get .
 func (rg *Registry) Get(k interface{}) (interface{}, bool) {
@@ -113,11 +117,13 @@ func (rg *Registry) Delete(k interface{}) {
 //-----------------------------------------------------------------------------
 
 func (rg *Registry) _expireLoop() {
+	var done <-chan struct{}
+	if rg.ctx != nil {
+		// Docs: Successive calls to Done return the same value.
+		// so it's OK.
+		done = rg.ctx.Done()
+	}
 	for {
-		var done <-chan struct{}
-		if rg.ctx != nil {
-			done = rg.ctx.Done() // TODO: should I get this every time?
-		}
 		select {
 		case <-done:
 			return
@@ -128,14 +134,26 @@ func (rg *Registry) _expireLoop() {
 }
 
 func (rg *Registry) _expireFunc() {
+	expired := make(map[interface{}]interface{})
 	rg.rwx.Lock()
 	for k, v := range rg.expiresAt {
 		if !time.Now().After(v) {
 			continue
 		}
+		expired[k] = rg.values[k]
 		rg._delete(k)
 	}
 	rg.rwx.Unlock()
+	if rg.onExpire == nil {
+		return
+	}
+	for k, v := range expired {
+		k, v := k, v
+		go club.Supervise(func() error {
+			rg.onExpire(k, v)
+			return nil
+		}, 1)
+	}
 }
 
 func (rg *Registry) _delete(k interface{}) {
