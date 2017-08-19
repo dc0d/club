@@ -167,32 +167,65 @@ func OnSignal(f func(), sig ...os.Signal) {
 
 //-----------------------------------------------------------------------------
 
-// Supervise take care of restarts (in case of panic or error)
+// V 1
+// // Supervise take care of restarts (in case of panic or error)
+// func Supervise(action func() error, intensity int, period ...time.Duration) {
+// 	if intensity == 0 {
+// 		return
+// 	}
+// 	if intensity > 0 {
+// 		intensity--
+// 	}
+// 	dt := time.Second * 3
+// 	if len(period) > 0 && period[0] > 0 {
+// 		dt = period[0]
+// 	}
+// 	retry := func() {
+// 		time.Sleep(dt)
+// 		go Supervise(action, intensity, dt)
+// 	}
+// 	defer func() {
+// 		if r := recover(); r != nil {
+// 			log.Error(r)
+// 			retry()
+// 		}
+// 	}()
+// 	if err := action(); err != nil {
+// 		log.Error(err)
+// 		retry()
+// 	}
+// }
+
+// Supervise runs in sync, use as Supervise(...),
+// takes care of restarts (in case of panic or error)
 func Supervise(action func() error, intensity int, period ...time.Duration) {
-	if intensity == 0 {
-		return
-	}
-	if intensity > 0 {
-		intensity--
-	}
 	dt := time.Second * 3
 	if len(period) > 0 && period[0] > 0 {
 		dt = period[0]
 	}
-	retry := func() {
-		time.Sleep(dt)
-		go Supervise(action, intensity, dt)
+	for intensity != 0 {
+		if intensity > 0 {
+			intensity--
+		}
+		if err := runOnce(action); err != nil {
+			log.Error(err)
+			time.Sleep(dt)
+		} else {
+			break
+		}
 	}
+}
+
+func runOnce(action func() error) (errrun error) {
 	defer func() {
-		if r := recover(); r != nil {
-			log.Error(r)
-			retry()
+		if e := recover(); e != nil {
+			if err, ok := e.(error); ok {
+				errrun = err
+				return
+			}
 		}
 	}()
-	if err := action(); err != nil {
-		log.Error(err)
-		retry()
-	}
+	return action()
 }
 
 //-----------------------------------------------------------------------------

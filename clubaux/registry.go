@@ -24,7 +24,7 @@ type Registry struct {
 
 // NewRegistry min of expirationInterval is 1 ms, default (if passed 0) is 30 sec, ctx can be nil
 func NewRegistry(ctx context.Context, expirationInterval time.Duration) *Registry {
-	if expirationInterval < 0 {
+	if expirationInterval < time.Millisecond {
 		expirationInterval = time.Millisecond
 	}
 	if expirationInterval == 0 {
