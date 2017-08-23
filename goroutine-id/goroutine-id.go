@@ -1,4 +1,4 @@
-package clubaux
+package goroutineid
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"sync"
 )
+
+// is cut out from somewhere I don't remember now, but it's cool! so I keep it!
 
 //-----------------------------------------------------------------------------
 

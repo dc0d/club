@@ -1,4 +1,4 @@
-package clubaux
+package valregistry
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// Registry currently leaks one goroutine
+// Registry is a registry for values (like a concurrent map) with timeout and sliding timeout
 type Registry struct {
 	ctx                context.Context
 	expirationInterval time.Duration
@@ -45,7 +45,7 @@ func NewRegistry(ctx context.Context, expirationInterval time.Duration) *Registr
 	return res
 }
 
-// SetOnExpire .
+// SetOnExpire is not concurrent safe, use immediately after construction
 func (rg *Registry) SetOnExpire(onExpire func(k, v interface{})) { rg.onExpire = onExpire }
 
 // Get .
