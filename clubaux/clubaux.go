@@ -90,7 +90,7 @@ func TimerScope(name string, opCount ...int) func() {
 			name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
 		}
 	}
-	log.Info(name, `started`)
+	log.Info(name, ` started`)
 	start := time.Now()
 	return func() {
 		elapsed := time.Now().Sub(start)
@@ -176,6 +176,19 @@ func LoadHCL(ptr interface{}, filePath ...string) error {
 	}
 
 	return nil
+}
+
+//-----------------------------------------------------------------------------
+
+// Chain .
+func Chain(steps ...func() error) (chainerr error) {
+	for _, v := range steps {
+		chainerr = v()
+		if chainerr != nil {
+			return
+		}
+	}
+	return
 }
 
 //-----------------------------------------------------------------------------
