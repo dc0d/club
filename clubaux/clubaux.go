@@ -192,3 +192,17 @@ func Chain(steps ...func() error) (chainerr error) {
 }
 
 //-----------------------------------------------------------------------------
+
+// ErrorCallerf .
+func ErrorCallerf(format string, a ...interface{}) error {
+	var name string
+	funcName, fileName, fileLine, err := Here(2)
+	if err != nil {
+		name = "N/A"
+	} else {
+		name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
+	}
+	return club.Errorf(name+": "+format, a...)
+}
+
+//-----------------------------------------------------------------------------
