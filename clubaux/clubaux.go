@@ -193,7 +193,7 @@ func Chain(steps ...func() error) (chainerr error) {
 
 //-----------------------------------------------------------------------------
 
-// ErrorCallerf .
+// ErrorCallerf creates a string error which containes the info about location of error
 func ErrorCallerf(format string, a ...interface{}) error {
 	var name string
 	funcName, fileName, fileLine, err := Here(2)
@@ -203,6 +203,30 @@ func ErrorCallerf(format string, a ...interface{}) error {
 		name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
 	}
 	return club.Errorf(name+": "+format, a...)
+}
+
+//-----------------------------------------------------------------------------
+
+// ErrorCollection is an error type representing a collection of errors
+type ErrorCollection []error
+
+func (x ErrorCollection) Error() string {
+	if len(x) == 0 {
+		return ""
+	}
+
+	buff := GetBuffer()
+	defer PutBuffer(buff)
+
+	for _, ve := range x {
+		if ve == nil {
+			continue
+		}
+		buff.WriteString(" [" + ve.Error() + "]")
+	}
+	res := strings.TrimSpace(buff.String())
+
+	return res
 }
 
 //-----------------------------------------------------------------------------
