@@ -110,7 +110,7 @@ func (rg *Registry) CAS(k, v interface{}, cond func(interface{}) bool) error {
 // Delete .
 func (rg *Registry) Delete(k interface{}) {
 	rg.rwx.Lock()
-	rg._delete(k)
+	rg._2delete(k)
 	rg.rwx.Unlock()
 }
 
@@ -141,7 +141,7 @@ func (rg *Registry) _expireFunc() {
 			continue
 		}
 		expired[k] = rg.values[k]
-		rg._delete(k)
+		rg._2delete(k)
 	}
 	rg.rwx.Unlock()
 	if rg.onExpire == nil {
@@ -156,7 +156,7 @@ func (rg *Registry) _expireFunc() {
 	}
 }
 
-func (rg *Registry) _delete(k interface{}) {
+func (rg *Registry) _2delete(k interface{}) {
 	delete(rg.expiresAt, k)
 	delete(rg.expiresAfter, k)
 	delete(rg.isSliding, k)
