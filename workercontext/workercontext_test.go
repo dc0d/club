@@ -11,37 +11,37 @@ import (
 
 func TestWorkerContext1(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	wctx := New(ctx)
+	wctx, _ := New(ctx)
 
 	var sum int64
 
 	for i := 0; i < 10; i++ {
 		i := i + 1
-		wctx.Add(1)
+		wctx.WaitGroup().Add(1)
 		go func() {
-			defer wctx.JobDone()
-			<-wctx.Done()
+			defer wctx.WaitGroup().Done()
+			<-wctx.Context().Done()
 			atomic.AddInt64(&sum, int64(i))
 		}()
 	}
 
 	cancel()
-	wctx.Wait()
+	wctx.WaitGroup().Wait()
 	assert.Equal(t, int64(55), sum)
 }
 
 func TestWorkerContext2(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	wctx := New(ctx)
+	wctx, _ := New(ctx)
 
 	var sum int64
 
 	for i := 0; i < 10; i++ {
 		i := i + 1
-		wctx.Add(1)
+		wctx.WaitGroup().Add(1)
 		go func() {
 			// defer wctx.JobDone()
-			<-wctx.Done()
+			<-wctx.Context().Done()
 			atomic.AddInt64(&sum, int64(i))
 		}()
 	}
@@ -50,7 +50,7 @@ func TestWorkerContext2(t *testing.T) {
 	waitDone := make(chan struct{})
 	go func() {
 		defer close(waitDone)
-		wctx.Wait()
+		wctx.WaitGroup().Wait()
 	}()
 	select {
 	case <-waitDone:
@@ -62,24 +62,24 @@ func TestWorkerContext2(t *testing.T) {
 
 func TestWorkerContext3(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	wctx := New(ctx)
+	wctx, _ := New(ctx)
 
 	var sum int64
 
 	for i := 0; i < 10; i++ {
 		i := i + 1
-		wctx.Add(1)
+		wctx.WaitGroup().Add(1)
 		go func() {
-			defer wctx.JobDone()
+			defer wctx.WaitGroup().Done()
 			if i == 3 {
 				return
 			}
-			<-wctx.Done()
+			<-wctx.Context().Done()
 			atomic.AddInt64(&sum, int64(i))
 		}()
 	}
 
 	cancel()
-	wctx.Wait()
+	wctx.WaitGroup().Wait()
 	assert.Equal(t, int64(52), sum)
 }

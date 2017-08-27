@@ -54,12 +54,12 @@ func (w *Waiter) Wait() error {
 	if w.cancel != nil {
 		w.cancel()
 	}
-	<-w.wctx.Done()
+	<-w.wctx.Context().Done()
 
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		w.wctx.Wait()
+		w.wctx.WaitGroup().Wait()
 	}()
 	select {
 	case <-done:

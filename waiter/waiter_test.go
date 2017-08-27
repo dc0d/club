@@ -12,16 +12,16 @@ import (
 
 func Test01(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	wctx := workercontext.New(ctx)
+	wctx, _ := workercontext.New(ctx)
 
 	var sum int64
 
 	for i := 0; i < 10; i++ {
 		i := i + 1
-		wctx.Add(1)
+		wctx.WaitGroup().Add(1)
 		go func() {
-			defer wctx.JobDone()
-			<-wctx.Done()
+			defer wctx.WaitGroup().Done()
+			<-wctx.Context().Done()
 			atomic.AddInt64(&sum, int64(i))
 		}()
 	}
@@ -35,16 +35,16 @@ func Test01(t *testing.T) {
 
 func Test02(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	wctx := workercontext.New(ctx)
+	wctx, _ := workercontext.New(ctx)
 
 	var sum int64
 
 	for i := 0; i < 10; i++ {
 		i := i + 1
-		wctx.Add(1)
+		wctx.WaitGroup().Add(1)
 		go func() {
 			// defer wctx.JobDone()
-			<-wctx.Done()
+			<-wctx.Context().Done()
 			atomic.AddInt64(&sum, int64(i))
 		}()
 	}

@@ -3,39 +3,41 @@ package workercontext
 import (
 	"context"
 	"sync"
+
+	"github.com/dc0d/club"
 )
 
 // WaitGroup JobDone is the standard Done() in WaitGroup, renamed because of duplicate
 type WaitGroup interface {
 	Add(delta int)
-	JobDone()
+	Done()
 	Wait()
 }
 
-type waitGroup struct {
-	sync.WaitGroup
-}
-
-func (wg *waitGroup) Add(delta int) { wg.WaitGroup.Add(delta) }
-func (wg *waitGroup) JobDone()      { wg.WaitGroup.Done() }
-func (wg *waitGroup) Wait()         { wg.WaitGroup.Wait() }
-
-// WorkerContext combination of context.Context & WaitGroup
-type WorkerContext interface {
-	context.Context
-	WaitGroup
-}
-
 type workerContext struct {
-	context.Context
-	WaitGroup
+	ctx context.Context
+	wg  *sync.WaitGroup
 }
+
+func (wcx *workerContext) Context() context.Context { return wcx.ctx }
+func (wcx *workerContext) WaitGroup() WaitGroup     { return wcx.wg }
+
+// WorkerContext combination of context.Context & WaitGroup, an execution context
+type WorkerContext interface {
+	Context() context.Context
+	WaitGroup() WaitGroup
+}
+
+// ErrNilContext means we got a nil context while we shouldn't
+var ErrNilContext = club.Errorf("ERR_NIL_CONTEXT")
 
 // New .
-func New(ctx context.Context) WorkerContext {
-	// TODO: should panic on ctx == nil
-	return &workerContext{
-		Context:   ctx,
-		WaitGroup: &waitGroup{},
+func New(ctx context.Context) (WorkerContext, error) {
+	if ctx == nil {
+		return nil, ErrNilContext
 	}
+	return &workerContext{
+		ctx: ctx,
+		wg:  &sync.WaitGroup{},
+	}, nil
 }
