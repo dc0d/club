@@ -144,18 +144,6 @@ func PutBuffer(buff *bytes.Buffer) {
 
 //-----------------------------------------------------------------------------
 
-func defaultAppNameHandler() string {
-	return filepath.Base(os.Args[0])
-}
-
-func defaultConfNameHandler() string {
-	fp := fmt.Sprintf("%s.conf", defaultAppNameHandler())
-	if _, err := os.Stat(fp); err != nil {
-		fp = "app.conf"
-	}
-	return fp
-}
-
 // LoadHCL loads hcl conf file. default conf file names (if filePath not provided)
 // in the same directory are <appname>.conf and if not fount app.conf
 func LoadHCL(ptr interface{}, filePath ...string) error {
@@ -164,7 +152,7 @@ func LoadHCL(ptr interface{}, filePath ...string) error {
 		fp = filePath[0]
 	}
 	if fp == "" {
-		fp = defaultConfNameHandler()
+		fp = _confFilePath()
 	}
 	cn, err := ioutil.ReadFile(fp)
 	if err != nil {
@@ -176,6 +164,40 @@ func LoadHCL(ptr interface{}, filePath ...string) error {
 	}
 
 	return nil
+}
+
+func _confFilePath() string {
+	appName := filepath.Base(os.Args[0])
+	appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+
+	}
+	appConfName := fmt.Sprintf("%s.conf", appName)
+	genericConfName := "app.conf"
+
+	for _, vn := range []string{appConfName, genericConfName} {
+		currentPath := filepath.Join(appDir, vn)
+		if _, err := os.Stat(currentPath); err == nil {
+			return currentPath
+		}
+	}
+
+	for _, vn := range []string{appConfName, genericConfName} {
+		wd, err := os.Getwd()
+		if err != nil {
+			continue
+		}
+		currentPath := filepath.Join(wd, vn)
+		if _, err := os.Stat(currentPath); err == nil {
+			return currentPath
+		}
+	}
+
+	if _, err := os.Stat(appConfName); err == nil {
+		return appConfName
+	}
+
+	return genericConfName
 }
 
 //-----------------------------------------------------------------------------
