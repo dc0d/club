@@ -82,9 +82,6 @@ func Here(skip ...int) (funcName, fileName string, fileLine int, callerErr error
 
 // TimerScope .
 func TimerScope(name string, opCount ...int) func() {
-	buf := GetBuffer()
-	defer PutBuffer(buf)
-
 	if name == "" {
 		funcName, fileName, fileLine, err := Here(2)
 		if err != nil {
@@ -93,15 +90,17 @@ func TimerScope(name string, opCount ...int) func() {
 			name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
 		}
 	}
-	fmt.Fprintln(buf, name, "started")
+	log.Info(name, "started")
 	start := time.Now()
 	return func() {
+		buf := GetBuffer()
+		defer PutBuffer(buf)
 		defer func() {
-			log.Info(string(buf.Bytes()))
+			log.Info(string(buf.Bytes()) + "\n")
 		}()
 
 		elapsed := time.Now().Sub(start)
-		fmt.Fprintf(buf, "%s took %v\n", name, elapsed)
+		fmt.Fprintf(buf, "%s took %v ", name, elapsed)
 		if len(opCount) == 0 {
 			return
 		}
@@ -114,17 +113,17 @@ func TimerScope(name string, opCount ...int) func() {
 		E := float64(elapsed)
 		FRC := E / float64(N)
 
-		fmt.Fprintf(buf, "op/sec %.2f\n", float64(N)/(E/float64(time.Second)))
+		fmt.Fprintf(buf, "op/sec %.2f ", float64(N)/(E/float64(time.Second)))
 
 		switch {
 		case FRC > float64(time.Second):
-			fmt.Fprintf(buf, "sec/op %.2f\n", (E/float64(time.Second))/float64(N))
+			fmt.Fprintf(buf, "sec/op %.2f ", (E/float64(time.Second))/float64(N))
 		case FRC > float64(time.Millisecond):
-			fmt.Fprintf(buf, "milli-sec/op %.2f\n", (E/float64(time.Millisecond))/float64(N))
+			fmt.Fprintf(buf, "milli-sec/op %.2f ", (E/float64(time.Millisecond))/float64(N))
 		case FRC > float64(time.Microsecond):
-			fmt.Fprintf(buf, "micro-sec/op %.2f\n", (E/float64(time.Microsecond))/float64(N))
+			fmt.Fprintf(buf, "micro-sec/op %.2f ", (E/float64(time.Microsecond))/float64(N))
 		default:
-			fmt.Fprintf(buf, "nano-sec/op %.2f\n", (E/float64(time.Nanosecond))/float64(N))
+			fmt.Fprintf(buf, "nano-sec/op %.2f ", (E/float64(time.Nanosecond))/float64(N))
 		}
 	}
 }
