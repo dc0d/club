@@ -90,7 +90,7 @@ func TimerScope(name string, opCount ...int) func() {
 			name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
 		}
 	}
-	log.Info(name, "started")
+	log.Info(name, " started")
 	start := time.Now()
 	return func() {
 		buf := GetBuffer()
