@@ -144,8 +144,8 @@ func GetBuffer() *bytes.Buffer {
 
 // PutBuffer .
 func PutBuffer(buff *bytes.Buffer) {
+	buff.Reset() // ooch!
 	bufferPool.Put(buff)
-	buff.Reset()
 }
 
 //-----------------------------------------------------------------------------
