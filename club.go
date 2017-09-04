@@ -27,7 +27,7 @@ func Supervise(
 	intensity int,
 	period time.Duration,
 	onError ...func(error)) {
-	if intensity > 1 && period <= 0 {
+	if intensity != 1 && period <= 0 {
 		period = time.Second * 5
 	}
 
