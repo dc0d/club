@@ -152,7 +152,7 @@ func (rg *Registry) _expireFunc() {
 		go club.Supervise(func() error {
 			rg.onExpire(k, v)
 			return nil
-		}, 1)
+		}, 1, 0)
 	}
 }
 

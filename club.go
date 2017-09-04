@@ -19,21 +19,28 @@ func Errorf(format string, a ...interface{}) error {
 
 //-----------------------------------------------------------------------------
 
-// Supervise runs in sync, use as "go Supervise(...)",
-// takes care of restarts (in case of panic or error)
-func Supervise(action func() error, intensity int, period ...time.Duration) {
-	dt := time.Second * 3
-	if len(period) > 0 && period[0] > 0 {
-		dt = period[0]
+// Supervise a helper method, runs in sync, use as "go Supervise(...)",
+// takes care of restarts (in case of panic or error),
+// can be used as a SimpleOneForOne supervisor, an intensity < 0 means restart forever
+func Supervise(
+	action func() error,
+	intensity int,
+	period time.Duration,
+	onError ...func(error)) {
+	if intensity > 1 && period <= 0 {
+		period = time.Second * 5
 	}
+
 	for intensity != 0 {
 		if intensity > 0 {
 			intensity--
 		}
 		if err := Run(action); err != nil {
-			log.Errorf("supervised %v", err)
+			if len(onError) > 0 && onError[0] != nil {
+				onError[0](err)
+			}
 			if intensity != 0 {
-				time.Sleep(dt)
+				time.Sleep(period)
 			}
 		} else {
 			break

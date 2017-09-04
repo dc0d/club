@@ -7,7 +7,7 @@ import (
 	"github.com/dc0d/club"
 )
 
-// WaitGroup JobDone is the standard Done() in WaitGroup, renamed because of duplicate
+// WaitGroup interface for built-in WaitGroup
 type WaitGroup interface {
 	Add(delta int)
 	Done()
