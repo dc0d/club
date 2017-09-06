@@ -1,21 +1,10 @@
 package club
 
 import (
-	"fmt"
 	"time"
+
+	"github.com/dc0d/club/errors"
 )
-
-//-----------------------------------------------------------------------------
-
-// ErrString a string that inplements the error interface
-type ErrString string
-
-func (v ErrString) Error() string { return string(v) }
-
-// Errorf value type (string) error
-func Errorf(format string, a ...interface{}) error {
-	return ErrString(fmt.Sprintf(format, a...))
-}
 
 //-----------------------------------------------------------------------------
 
@@ -56,7 +45,7 @@ func Run(action func() error) (errrun error) {
 				errrun = err
 				return
 			}
-			errrun = Errorf("UNKNOWN: %v", e)
+			errrun = errors.Errorf("UNKNOWN: %v", e)
 		}
 	}()
 	return action()

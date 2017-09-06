@@ -7,13 +7,12 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"runtime"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/dc0d/club"
+	"github.com/dc0d/club/errors"
 	"github.com/hashicorp/hcl"
 )
 
@@ -48,42 +47,15 @@ func OnSignal(f func(), sig ...os.Signal) {
 }
 
 var (
-	errNotAvailable = club.Errorf("N/A")
+	errNotAvailable = errors.Errorf("N/A")
 )
-
-//-----------------------------------------------------------------------------
-
-// Here .
-func Here(skip ...int) (funcName, fileName string, fileLine int, callerErr error) {
-	sk := 1
-	if len(skip) > 0 && skip[0] > 1 {
-		sk = skip[0]
-	}
-	var pc uintptr
-	var ok bool
-	pc, fileName, fileLine, ok = runtime.Caller(sk)
-	if !ok {
-		callerErr = errNotAvailable
-		return
-	}
-	fn := runtime.FuncForPC(pc)
-	name := fn.Name()
-	ix := strings.LastIndex(name, ".")
-	if ix > 0 && (ix+1) < len(name) {
-		name = name[ix+1:]
-	}
-	funcName = name
-	nd, nf := filepath.Split(fileName)
-	fileName = filepath.Join(filepath.Base(nd), nf)
-	return
-}
 
 //-----------------------------------------------------------------------------
 
 // TimerScope .
 func TimerScope(name string, opCount ...int) func() {
 	if name == "" {
-		funcName, fileName, fileLine, err := Here(2)
+		funcName, fileName, fileLine, err := errors.Here(2)
 		if err != nil {
 			name = "N/A"
 		} else {
@@ -217,44 +189,6 @@ func Chain(steps ...func() error) (chainerr error) {
 		}
 	}
 	return
-}
-
-//-----------------------------------------------------------------------------
-
-// ErrorCallerf creates a string error which containes the info about location of error
-func ErrorCallerf(format string, a ...interface{}) error {
-	var name string
-	funcName, fileName, fileLine, err := Here(2)
-	if err != nil {
-		name = "N/A"
-	} else {
-		name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
-	}
-	return club.Errorf(name+": "+format, a...)
-}
-
-//-----------------------------------------------------------------------------
-
-// ErrorCollection is an error type representing a collection of errors
-type ErrorCollection []error
-
-func (x ErrorCollection) Error() string {
-	if len(x) == 0 {
-		return ""
-	}
-
-	buff := GetBuffer()
-	defer PutBuffer(buff)
-
-	for _, ve := range x {
-		if ve == nil {
-			continue
-		}
-		buff.WriteString(" [" + ve.Error() + "]")
-	}
-	res := strings.TrimSpace(buff.String())
-
-	return res
 }
 
 //-----------------------------------------------------------------------------

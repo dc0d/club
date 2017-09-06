@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/dc0d/club"
+	"github.com/dc0d/club/errors"
 )
 
 //-----------------------------------------------------------------------------
@@ -88,8 +89,8 @@ func (rg *Registry) PutWithExpiration(k, v interface{},
 
 // errors
 var (
-	ErrNotFound = club.Errorf("NOT_FOUND")
-	ErrCASCond  = club.Errorf("CAS_COND_FAILED")
+	ErrNotFound = errors.Errorf("NOT_FOUND")
+	ErrCASCond  = errors.Errorf("CAS_COND_FAILED")
 )
 
 // CAS .

@@ -10,7 +10,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dc0d/club"
+	"github.com/dc0d/club/errors"
 )
 
 // A Group is a collection of goroutines working on subtasks that are part of
@@ -73,7 +73,7 @@ func (g *Group) Go(f func() error) {
 					funcerr = err
 					return
 				}
-				funcerr = club.Errorf("UNKNOWN: %v", e)
+				funcerr = errors.Errorf("UNKNOWN: %v", e)
 			}
 		}()
 

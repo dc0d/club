@@ -1,3 +1,8 @@
+# 2017-09-06
+`github.com/pkg/errors` looses data if there is more than one level of causer errors. There should be facility for that; wrapping up errors in a hierarchi and unwrap them.
+
+There are operational errors, like `TIMEOUT` which do not contain any task specific info. And there are task specific errors which contain certain info about the state. How to model these in an idiomatic way? There errors are useless in comparisions.
+
 # 2017-08-28
 `errgroup` has this advantage that goroutines can get added dynamically. It uses a context that should be used inside those registered goroutines (and for backward signaling). The original error is available as the return value of `Wait()`, but it can not be used from inside the workers (because of `WaitGroup`). We adapt this by adding the recovery from panic and study it for some time.
 

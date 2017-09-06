@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dc0d/club"
+	"github.com/dc0d/club/errors"
 )
 
 // WaitGroup interface for built-in WaitGroup
@@ -29,7 +29,7 @@ type WorkerContext interface {
 }
 
 // ErrNilContext means we got a nil context while we shouldn't
-var ErrNilContext = club.Errorf("ERR_NIL_CONTEXT")
+var ErrNilContext = errors.Errorf("ERR_NIL_CONTEXT")
 
 // New .
 func New(ctx context.Context) (WorkerContext, error) {

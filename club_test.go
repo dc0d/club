@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/dc0d/club/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,7 +20,7 @@ func Test01(t *testing.T) {
 	var sum int64
 	Supervise(func() error {
 		atomic.AddInt64(&sum, 1)
-		return Errorf("DUMMY")
+		return errors.Errorf("DUMMY")
 	}, 3, time.Millisecond*50)
 	assert.Equal(t, int64(3), sum)
 }
@@ -29,7 +30,7 @@ func Test02(t *testing.T) {
 	var sum int64
 	Supervise(func() error {
 		atomic.AddInt64(&sum, 1)
-		panic(Errorf("DUMMY"))
+		panic(errors.Errorf("DUMMY"))
 	}, 3, time.Millisecond*50)
 	assert.Equal(t, int64(3), sum)
 }
