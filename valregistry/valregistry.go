@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dc0d/club"
 	"github.com/dc0d/club/errors"
+	"github.com/dc0d/supervisor"
 )
 
 //-----------------------------------------------------------------------------
@@ -150,10 +150,10 @@ func (rg *Registry) _expireFunc() {
 	}
 	for k, v := range expired {
 		k, v := k, v
-		go club.Supervise(func() error {
+		go supervisor.Supervise(func() error {
 			rg.onExpire(k, v)
 			return nil
-		}, 1, 0)
+		})
 	}
 }
 
