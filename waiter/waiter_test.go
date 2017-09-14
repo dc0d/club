@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dc0d/club/workercontext"
+	"github.com/dc0d/executioncontext"
 	"github.com/stretchr/testify/assert"
 )
 
 func Test01(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	wctx, _ := workercontext.New(ctx)
+	wctx, _ := executioncontext.New(ctx)
 
 	var sum int64
 
@@ -35,7 +35,7 @@ func Test01(t *testing.T) {
 
 func Test02(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
-	wctx, _ := workercontext.New(ctx)
+	wctx, _ := executioncontext.New(ctx)
 
 	var sum int64
 

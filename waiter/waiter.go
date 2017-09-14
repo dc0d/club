@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/dc0d/club/workercontext"
+	"github.com/dc0d/executioncontext"
 )
 
 const (
@@ -22,13 +22,13 @@ var (
 
 // Waiter .
 type Waiter struct {
-	wctx    workercontext.WorkerContext
+	wctx    executioncontext.Context
 	timeout time.Duration
 	cancel  context.CancelFunc
 }
 
 // New .
-func New(wctx workercontext.WorkerContext) *Waiter {
+func New(wctx executioncontext.Context) *Waiter {
 	return &Waiter{
 		wctx:    wctx,
 		timeout: defaultTimeout,
