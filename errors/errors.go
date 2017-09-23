@@ -97,6 +97,40 @@ func Here(skip ...int) (funcName, fileName string, fileLine int, callerErr error
 
 //-----------------------------------------------------------------------------
 
+type errorWithCaller struct {
+	name string
+	err  error
+}
+
+func (e errorWithCaller) Error() string {
+	var cause string
+	if e.err != nil {
+		cause = e.err.Error()
+	} else {
+		cause = "N/A"
+	}
+	return e.name + ": " + cause
+}
+
+func (e errorWithCaller) Cause() error { return e.err }
+
+// ErrorWithCaller .
+func ErrorWithCaller(cause error) error {
+	var name string
+	funcName, fileName, fileLine, err := Here(2)
+	if err != nil {
+		name = "N/A"
+	} else {
+		name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
+	}
+	return errorWithCaller{
+		name: name,
+		err:  cause,
+	}
+}
+
+//-----------------------------------------------------------------------------
+
 // ErrorCallerf creates a string error which containes the info about location of error
 func ErrorCallerf(format string, a ...interface{}) error {
 	var name string
@@ -107,6 +141,13 @@ func ErrorCallerf(format string, a ...interface{}) error {
 		name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
 	}
 	return Errorf(name+": "+format, a...)
+}
+
+//-----------------------------------------------------------------------------
+
+// Causer .
+type Causer interface {
+	Cause() error
 }
 
 //-----------------------------------------------------------------------------

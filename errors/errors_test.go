@@ -50,3 +50,25 @@ func TestErrorCollection(t *testing.T) {
 	var err error = x
 	assert.Equal(t, "[ERR 1] [ERR 2]", err.Error())
 }
+
+func TestErrorCaller(t *testing.T) {
+	assert := assert.New(t)
+
+	e1 := Errorf("ERR")
+
+	err := ErrorWithCaller(e1)
+	assert.Contains(err.Error(), "ERR")
+	assert.Contains(err.Error(), "errors/errors_test.go:")
+	assert.Contains(err.Error(), "TestErrorCaller(): ")
+
+	c, ok := err.(Causer)
+	assert.True(ok)
+	assert.Equal(e1, c.Cause())
+
+	err = ErrorWithCaller(nil)
+	assert.Contains(err.Error(), "N/A")
+
+	c, ok = err.(Causer)
+	assert.True(ok)
+	assert.Nil(c.Cause())
+}
