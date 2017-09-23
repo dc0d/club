@@ -9,16 +9,10 @@ import (
 	"path/filepath"
 	"sync"
 	"syscall"
-	"time"
 
-	"github.com/dc0d/club"
 	"github.com/dc0d/club/errors"
 	"github.com/hashicorp/hcl"
 )
-
-//-----------------------------------------------------------------------------
-
-var log = club.GetLogger()
 
 //-----------------------------------------------------------------------------
 
@@ -49,56 +43,6 @@ func OnSignal(f func(), sig ...os.Signal) {
 var (
 	errNotAvailable = errors.Errorf("N/A")
 )
-
-//-----------------------------------------------------------------------------
-
-// TimerScope .
-func TimerScope(name string, opCount ...int) func() {
-	if name == "" {
-		funcName, fileName, fileLine, err := errors.Here(2)
-		if err != nil {
-			name = "N/A"
-		} else {
-			name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
-		}
-	}
-	log.Info(name, " started")
-	start := time.Now()
-	return func() {
-		buf := GetBuffer()
-		defer PutBuffer(buf)
-		defer func() {
-			log.Info(string(buf.Bytes()) + "\n")
-		}()
-
-		elapsed := time.Now().Sub(start)
-		fmt.Fprintf(buf, "%s took %v ", name, elapsed)
-		if len(opCount) == 0 {
-			return
-		}
-
-		N := opCount[0]
-		if N <= 0 {
-			return
-		}
-
-		E := float64(elapsed)
-		FRC := E / float64(N)
-
-		fmt.Fprintf(buf, "op/sec %.2f ", float64(N)/(E/float64(time.Second)))
-
-		switch {
-		case FRC > float64(time.Second):
-			fmt.Fprintf(buf, "sec/op %.2f ", (E/float64(time.Second))/float64(N))
-		case FRC > float64(time.Millisecond):
-			fmt.Fprintf(buf, "milli-sec/op %.2f ", (E/float64(time.Millisecond))/float64(N))
-		case FRC > float64(time.Microsecond):
-			fmt.Fprintf(buf, "micro-sec/op %.2f ", (E/float64(time.Microsecond))/float64(N))
-		default:
-			fmt.Fprintf(buf, "nano-sec/op %.2f ", (E/float64(time.Nanosecond))/float64(N))
-		}
-	}
-}
 
 //-----------------------------------------------------------------------------
 
