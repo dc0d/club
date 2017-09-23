@@ -63,7 +63,7 @@ func TimerScope(options ...Option) (name string, onExit func() string) {
 			opt.name = fmt.Sprintf("%s:%02d %s()", fileName, fileLine, funcName)
 		}
 	}
-	name = opt.name
+	name = opt.name + " started"
 	start := time.Now()
 	onExit = func() (logExit string) {
 		buf := getBuffer()
@@ -73,7 +73,7 @@ func TimerScope(options ...Option) (name string, onExit func() string) {
 		}()
 
 		elapsed := time.Now().Sub(start)
-		fmt.Fprintf(buf, "%s took %v ", name, elapsed)
+		fmt.Fprintf(buf, "%s took %v ", opt.name, elapsed)
 
 		N := opt.opCount
 		if N <= 0 {

@@ -25,7 +25,8 @@ func Test02(t *testing.T) {
 	fst, sndFunc := TimerScope(Name("sample"), OpCount(100))
 	snd := sndFunc()
 
-	assert.Equal(fst, "sample")
+	assert.Contains(fst, "sample")
+	assert.Contains(fst, "started")
 	assert.Contains(snd, "sample took")
 	assert.Contains(snd, "op/sec")
 	assert.Contains(snd, "nano-sec/op")
