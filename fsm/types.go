@@ -1,5 +1,7 @@
 package fsm
 
+//-----------------------------------------------------------------------------
+
 // State represents a state activity
 type State func() (State, error)
 
@@ -13,7 +15,4 @@ func Activate(s State) (funcErr error) {
 	return
 }
 
-// FSM is an fsm which provides a starting state
-type FSM interface {
-	Start() State
-}
+//-----------------------------------------------------------------------------
