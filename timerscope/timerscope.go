@@ -75,25 +75,25 @@ func TimerScope(options ...Option) (name string, onExit func() string) {
 		elapsed := time.Now().Sub(start)
 		fmt.Fprintf(buf, "%s took %v ", opt.name, elapsed)
 
-		N := opt.opCount
+		N := float64(opt.opCount)
 		if N <= 0 {
 			return
 		}
 
 		E := float64(elapsed)
-		FRC := E / float64(N)
+		FRC := E / N
 
-		fmt.Fprintf(buf, "op/sec %.2f ", float64(N)/(E/float64(time.Second)))
+		fmt.Fprintf(buf, "op/sec %.2f ", N/elapsed.Seconds())
 
 		switch {
 		case FRC > float64(time.Second):
-			fmt.Fprintf(buf, "sec/op %.2f ", (E/float64(time.Second))/float64(N))
+			fmt.Fprintf(buf, "sec/op %.2f ", (E/float64(time.Second))/N)
 		case FRC > float64(time.Millisecond):
-			fmt.Fprintf(buf, "milli-sec/op %.2f ", (E/float64(time.Millisecond))/float64(N))
+			fmt.Fprintf(buf, "milli-sec/op %.2f ", (E/float64(time.Millisecond))/N)
 		case FRC > float64(time.Microsecond):
-			fmt.Fprintf(buf, "micro-sec/op %.2f ", (E/float64(time.Microsecond))/float64(N))
+			fmt.Fprintf(buf, "micro-sec/op %.2f ", (E/float64(time.Microsecond))/N)
 		default:
-			fmt.Fprintf(buf, "nano-sec/op %.2f ", (E/float64(time.Nanosecond))/float64(N))
+			fmt.Fprintf(buf, "nano-sec/op %.2f ", (E/float64(time.Nanosecond))/N)
 		}
 
 		return
