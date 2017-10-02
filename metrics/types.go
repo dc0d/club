@@ -8,17 +8,51 @@ import (
 
 //-----------------------------------------------------------------------------
 
-// Average .
-type Average struct {
-	mx     sync.RWMutex
-	count  int64
-	av     float64
+type options struct {
+	maxAge time.Duration
 	format func(float64) string
 }
 
+func newOptions() *options {
+	return &options{
+		maxAge: time.Second * 120,
+	}
+}
+
+// Option .
+type Option func(*options)
+
+// MaxAge option
+func MaxAge(maxAge time.Duration) Option {
+	return func(opt *options) {
+		opt.maxAge = maxAge
+	}
+}
+
+// Format option
+func Format(format func(float64) string) Option {
+	return func(opt *options) {
+		opt.format = format
+	}
+}
+
+//-----------------------------------------------------------------------------
+
+// Average .
+type Average struct {
+	mx      sync.RWMutex
+	count   int64
+	av      float64
+	options *options
+}
+
 // NewAverage .
-func NewAverage(format func(float64) string) *Average {
-	return &Average{format: format}
+func NewAverage(options ...Option) *Average {
+	res := &Average{options: newOptions()}
+	for _, vf := range options {
+		vf(res.options)
+	}
+	return res
 }
 
 // Next .
@@ -35,8 +69,8 @@ func (av *Average) Next(v float64) {
 func (av *Average) String() (str string) {
 	av.mx.RLock()
 	defer av.mx.RUnlock()
-	if av.format != nil {
-		str = av.format(av.av)
+	if av.options.format != nil {
+		str = av.options.format(av.av)
 	} else {
 		str = fmt.Sprintf("%v", av.av)
 	}
@@ -47,21 +81,22 @@ func (av *Average) String() (str string) {
 
 // TimedAverage .
 type TimedAverage struct {
-	mx         sync.Mutex
-	timeWindow time.Duration
-	values     map[time.Time][]float64
-	format     func(float64) string
+	mx      sync.Mutex
+	values  map[time.Time][]float64
+	options *options
 }
 
 // NewTimedAverage .
-func NewTimedAverage(timeWindow time.Duration, format func(float64) string) *TimedAverage {
-	if timeWindow <= 0 {
-		timeWindow = time.Second * 90
-	}
+func NewTimedAverage(options ...Option) *TimedAverage {
 	res := &TimedAverage{
-		timeWindow: timeWindow,
-		values:     make(map[time.Time][]float64),
-		format:     format,
+		values:  make(map[time.Time][]float64),
+		options: newOptions(),
+	}
+	for _, vf := range options {
+		vf(res.options)
+	}
+	if res.options.maxAge <= 0 {
+		res.options.maxAge = 120
 	}
 	return res
 }
@@ -72,6 +107,16 @@ func (opd *TimedAverage) Set(v float64) {
 	defer opd.mx.Unlock()
 	k := time.Now()
 	opd.values[k] = append(opd.values[k], v)
+
+	var toDelete []time.Time
+	for k := range opd.values {
+		if time.Since(k) > opd.options.maxAge {
+			toDelete = append(toDelete, k)
+		}
+	}
+	for _, v := range toDelete {
+		delete(opd.values, v)
+	}
 }
 
 func (opd *TimedAverage) String() (str string) {
@@ -87,7 +132,7 @@ func (opd *TimedAverage) String() (str string) {
 	var min = time.Now().Add(time.Hour)
 
 	for k, v := range opd.values {
-		if time.Since(k) > opd.timeWindow {
+		if time.Since(k) > opd.options.maxAge {
 			toDelete = append(toDelete, k)
 			continue
 		}
@@ -106,8 +151,8 @@ func (opd *TimedAverage) String() (str string) {
 	N := float64(count)
 
 	var av = sum / float64(count)
-	if opd.format != nil {
-		str = opd.format(av)
+	if opd.options.format != nil {
+		str = opd.options.format(av)
 	} else {
 		str = fmt.Sprintf("%v", av)
 	}
