@@ -66,9 +66,9 @@ func TestErrorCaller(t *testing.T) {
 	assert.Equal(e1, c.Cause())
 
 	err = ErrorWithCaller(nil)
-	assert.Contains(err.Error(), "N/A")
+	assert.Equal(nil, err)
 
 	c, ok = err.(Causer)
-	assert.True(ok)
-	assert.Nil(c.Cause())
+	assert.False(ok)
+	assert.Nil(c)
 }

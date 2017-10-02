@@ -116,6 +116,9 @@ func (e errorWithCaller) Cause() error { return e.err }
 
 // ErrorWithCaller .
 func ErrorWithCaller(cause error) error {
+	if cause == nil {
+		return nil
+	}
 	var name string
 	funcName, fileName, fileLine, err := Here(2)
 	if err != nil {
