@@ -1,4 +1,4 @@
-package club
+package persian
 
 import (
 	"strings"
@@ -9,9 +9,8 @@ import (
 
 // PolishYeKaf replaces characters by their persian equivalent (for keyboards or OSs that suck)
 func PolishYeKaf(s string) (res string) {
-	res = s
 	res = strings.Replace(
-		res,
+		s,
 		"ي",
 		"ی",
 		-1)
@@ -24,10 +23,12 @@ func PolishYeKaf(s string) (res string) {
 	return
 }
 
+//-----------------------------------------------------------------------------
+
 // IranTime .
 func IranTime(source time.Time) time.Time {
 	var dest time.Time
-	loc, err := time.LoadLocation(`Asia/Tehran`)
+	loc, err := time.LoadLocation("Asia/Tehran")
 	if err == nil {
 		dest = source.In(loc)
 	} else {
