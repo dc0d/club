@@ -12,19 +12,11 @@ import (
 
 //-----------------------------------------------------------------------------
 
-type loaderFunc func(interface{}, ...string) error
-
-func (lf loaderFunc) Load(ptr interface{}, filePath ...string) error {
-	return lf(ptr, filePath...)
-}
-
-//-----------------------------------------------------------------------------
-
 // New returns a hcl config.Loader that loads hcl conf file. default conf file names
 // (if filePath not provided) in the same directory are <appname>.conf and if
 // not fount app.conf
 func New() config.Loader {
-	return loaderFunc(loadHCL)
+	return config.LoaderFunc(loadHCL)
 }
 
 //-----------------------------------------------------------------------------
@@ -51,10 +43,8 @@ func loadHCL(ptr interface{}, filePath ...string) error {
 
 func _confFilePath() string {
 	appName := filepath.Base(os.Args[0])
-	appDir, err := filepath.Abs(filepath.Dir(os.Args[0]))
-	if err != nil {
-
-	}
+	appDir, _ := os.Executable()
+	appDir, _ = filepath.Abs(filepath.Dir(appDir))
 	appConfName := fmt.Sprintf("%s.conf", appName)
 	genericConfName := "app.conf"
 
