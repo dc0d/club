@@ -24,7 +24,6 @@ func OnSignal(f func(), sig ...os.Signal) {
 			syscall.SIGTERM,
 			syscall.SIGQUIT,
 			syscall.SIGSTOP,
-			syscall.SIGABRT,
 			syscall.SIGTSTP,
 			syscall.SIGKILL)
 	}
