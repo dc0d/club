@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dc0d/club/errors"
+	"github.com/dc0d/club/errgo"
 )
 
 var bufferPool = sync.Pool{
@@ -56,7 +56,7 @@ func TimerScope(options ...Option) (name string, onExit func() string) {
 		opt = v(opt)
 	}
 	if opt.name == "" {
-		funcName, fileName, fileLine, err := errors.Here(2)
+		funcName, fileName, fileLine, err := errgo.Here(2)
 		if err != nil {
 			opt.name = "N/A"
 		} else {

@@ -5,7 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dc0d/club/errors"
+	"github.com/dc0d/club/errgo/sentinel"
 )
 
 //-----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ func OnSignal(f func(), sig ...os.Signal) {
 }
 
 var (
-	errNotAvailable = errors.Errorf("N/A")
+	errNotAvailable = sentinel.Errorf("N/A")
 )
 
 //-----------------------------------------------------------------------------

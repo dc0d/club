@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dc0d/club/errors"
+	"github.com/dc0d/club/errgo/sentinel"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -46,4 +46,4 @@ func (ac *actionCollection) action(i int) func() error {
 	}
 }
 
-var ErrExpectedSample = errors.Errorf("SHOULE_STOP")
+var ErrExpectedSample = sentinel.Errorf("SHOULE_STOP")

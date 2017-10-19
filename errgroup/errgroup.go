@@ -10,7 +10,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dc0d/club/errors"
+	"github.com/dc0d/club/errgo/sentinel"
 )
 
 // A Group is a collection of goroutines working on subtasks that are part of
@@ -73,7 +73,7 @@ func (g *Group) Go(f func() error) {
 					funcerr = err
 					return
 				}
-				funcerr = errors.Errorf("UNKNOWN: %v", e)
+				funcerr = sentinel.Errorf("UNKNOWN: %v", e)
 			}
 		}()
 
