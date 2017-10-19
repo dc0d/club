@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dc0d/club/errgo/sentinel"
+	"github.com/dc0d/errgo/sentinel"
 	"github.com/stretchr/testify/assert"
 )
 

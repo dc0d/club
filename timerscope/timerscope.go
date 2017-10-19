@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dc0d/club/errgo"
+	"github.com/dc0d/errgo"
 )
 
 var bufferPool = sync.Pool{

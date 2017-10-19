@@ -5,7 +5,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dc0d/club/errgo/sentinel"
+	"github.com/dc0d/errgo/sentinel"
 )
 
 //-----------------------------------------------------------------------------

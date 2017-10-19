@@ -10,7 +10,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/dc0d/club/errgo/sentinel"
+	"github.com/dc0d/errgo/sentinel"
 )
 
 // A Group is a collection of goroutines working on subtasks that are part of
