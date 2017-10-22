@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/dc0d/errgo/sentinel"
 )
@@ -46,6 +47,17 @@ func Chain(steps ...func() error) (chainerr error) {
 		if chainerr != nil {
 			return
 		}
+	}
+	return
+}
+
+//-----------------------------------------------------------------------------
+
+// TruncateHour .
+func TruncateHour(t time.Time) (res time.Time) {
+	res = t.Truncate(time.Minute * 30)
+	if res.Minute() > 0 {
+		res = res.Add(-1 * time.Minute).Truncate(time.Minute * 30)
 	}
 	return
 }
