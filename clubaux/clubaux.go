@@ -1,6 +1,7 @@
 package clubaux
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -60,6 +61,35 @@ func TruncateHour(t time.Time) (res time.Time) {
 		res = res.Add(-1 * time.Minute).Truncate(time.Minute * 30)
 	}
 	return
+}
+
+//-----------------------------------------------------------------------------
+
+// Throttle sends #count items per period, if context is not nil, after
+// context is canceled, it closes the returned channel.
+func Throttle(
+	ctx context.Context,
+	count int,
+	period time.Duration) <-chan time.Time {
+	ttt := make(chan time.Time, count)
+	go func() {
+		defer close(ttt)
+		ticks := time.NewTicker(time.Duration(float64(period) / float64(count)))
+		defer ticks.Stop()
+		var done <-chan struct{}
+		if ctx != nil {
+			done = ctx.Done()
+		}
+		for {
+			select {
+			case <-done:
+				return
+			case vt := <-ticks.C:
+				ttt <- vt
+			}
+		}
+	}()
+	return ttt
 }
 
 //-----------------------------------------------------------------------------

@@ -1,6 +1,8 @@
 package clubaux
 
 import (
+	"context"
+	"math"
 	"math/rand"
 	"testing"
 	"time"
@@ -28,4 +30,30 @@ func TestTruncateHour(t *testing.T) {
 			assert.Equal(current.Hour(), th.Hour())
 		}
 	}
+}
+
+func TestThrottle(t *testing.T) {
+	assert := assert.New(t)
+	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(time.Millisecond*100))
+	defer cancel()
+
+	count := 0
+	ttt := Throttle(ctx, 30, time.Millisecond*10)
+OUT1:
+	for {
+		select {
+		case <-ctx.Done():
+			break OUT1
+		case _, ok := <-ttt:
+			if ok {
+				count++
+			} else {
+				break OUT1
+			}
+		}
+	}
+	assert.Condition(func() bool {
+		diff := math.Abs(float64(300 - count))
+		return diff <= 30
+	})
 }
