@@ -26,7 +26,7 @@ func Wait(wg WaitGroup, timeout ...time.Duration) error {
 func WaitFinish(
 	g Group,
 	timeout ...time.Duration) error {
-	ctx, wg := g.Group()
+	ctx, wg := g.Set()
 	<-ctx.Done()
 	return Wait(wg, timeout...)
 }

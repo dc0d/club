@@ -54,7 +54,7 @@ OUT1:
 	}
 	assert.Condition(func() bool {
 		diff := math.Abs(float64(300 - count))
-		return diff <= 30
+		return diff <= 100
 	})
 }
 
