@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	tgroup "github.com/dc0d/club/task-group"
+	"github.com/dc0d/ctxgrp"
 )
 
 //-----------------------------------------------------------------------------
@@ -25,10 +25,10 @@ var (
 func newGroup() StopGroup {
 	ctx, cancel := context.WithCancel(context.Background())
 	onSignal(func() { cancel() })
-	tg := tgroup.New(ctx)
+	tg := ctxgrp.New(ctx)
 
 	return &sg{
-		Group:  tg,
+		grp:    tg,
 		cancel: cancel,
 	}
 }
@@ -37,14 +37,14 @@ func newGroup() StopGroup {
 
 // StopGroup a group that can be stopped
 type StopGroup interface {
-	tgroup.Group
+	Group() (context.Context, ctxgrp.WaitGroup)
 	SignalStop()
 }
 
 //-----------------------------------------------------------------------------
 
 type sg struct {
-	tgroup.Group
+	grp    ctxgrp.Group
 	cancel context.CancelFunc
 }
 
@@ -54,6 +54,8 @@ func (x *sg) SignalStop() {
 	}
 	x.cancel()
 }
+
+func (x *sg) Group() (context.Context, ctxgrp.WaitGroup) { return x.grp() }
 
 //-----------------------------------------------------------------------------
 

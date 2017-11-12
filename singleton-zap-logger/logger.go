@@ -101,7 +101,7 @@ func init() {
 	loggerInstance = _logger.Sugar()
 	zap.RedirectStdLog(_logger)
 	go func() {
-		ctx, wg := grp.Set()
+		ctx, wg := grp.Group()
 		wg.Add(1)
 		defer wg.Done()
 		<-ctx.Done()
