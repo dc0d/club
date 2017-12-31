@@ -1,31 +1,31 @@
 package mailbox
 
 import (
-	"context"
 	"testing"
 
-	"github.com/dc0d/club/mailbox/rammailstorage"
 	"github.com/stretchr/testify/assert"
 )
 
+var _ Mailbox = &mailbox{}
+
 func TestSmoke(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	mbox := New(ctx, rammailstorage.New())
+	assert := assert.New(t)
+	mbox := New(&SliceStorage{})
 	go func() { mbox.Send() <- 1 }()
 	v := <-mbox.Receive()
-	assert.Equal(t, 1, v)
+	assert.Equal(1, v)
 }
 
 func TestCount(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	mbox := New(ctx, rammailstorage.New())
-	N := 1000
+	assert := assert.New(t)
+	store := SliceStorage{}
+	mbox := New(&store)
+	N := 10
 	go func() {
 		for i := 0; i < N; i++ {
 			mbox.Send() <- 1
 		}
-		defer cancel()
+		mbox.Close()
 	}()
 	total := 0
 OUT1:
@@ -35,23 +35,22 @@ OUT1:
 			if !ok {
 				break OUT1
 			}
-			assert.Equal(t, 1, v)
+			assert.Equal(1, v)
 			total++
 		}
 	}
-	assert.Equal(t, N, total)
+	assert.Equal(N, total)
 }
 
 func TestItems(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
-	mbox := New(ctx, rammailstorage.New())
+	mbox := New(&SliceStorage{})
 	N := 1000
 	go func() {
 		for i := 1; i <= N; i++ {
 			i := i
 			mbox.Send() <- i
 		}
-		defer cancel()
+		mbox.Close()
 	}()
 	total := 0
 OUT1:
