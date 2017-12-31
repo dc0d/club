@@ -1,5 +1,9 @@
 package mailbox
 
+import (
+	"time"
+)
+
 // Storage like a []interface{} slice
 type Storage interface {
 	Len() int
@@ -25,8 +29,8 @@ func (store *SliceStorage) Drop() { *store = (*store)[1:] }
 
 // Mailbox .
 type Mailbox interface {
-	Send() chan<- interface{}
-	Receive() <-chan interface{}
+	Send(interface{}, ...time.Duration) bool
+	Receive(...time.Duration) (interface{}, bool)
 	Close() error
 }
 
@@ -37,9 +41,33 @@ type mailbox struct {
 	mails   Storage
 }
 
-func (mb *mailbox) Send() chan<- interface{}    { return mb.send }
-func (mb *mailbox) Receive() <-chan interface{} { return mb.receive }
-func (mb *mailbox) Close() error                { close(mb.close); return nil }
+func (mb *mailbox) Send(v interface{}, timeout ...time.Duration) bool {
+	var toch <-chan time.Time
+	if len(timeout) > 0 && timeout[0] > 0 {
+		toch = time.After(timeout[0])
+	}
+	select {
+	case <-toch:
+		return false
+	case mb.send <- v:
+	}
+	return true
+}
+
+func (mb *mailbox) Close() error { close(mb.close); return nil }
+
+func (mb *mailbox) Receive(timeout ...time.Duration) (interface{}, bool) {
+	var toch <-chan time.Time
+	if len(timeout) > 0 && timeout[0] > 0 {
+		toch = time.After(timeout[0])
+	}
+	select {
+	case <-toch:
+		return nil, false
+	case v, ok := <-mb.receive:
+		return v, ok
+	}
+}
 
 func (mb *mailbox) loop() {
 	defer close(mb.receive)
@@ -53,7 +81,7 @@ func (mb *mailbox) loop() {
 	for {
 		select {
 		case <-mb.close:
-			if mb.mails.Len() > 0 {
+			if mb.mails.Len() > 0 { // (?) this may cause to not close ever
 				continue
 			}
 			return
