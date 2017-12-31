@@ -72,6 +72,7 @@ func (mb *mailbox) Receive(timeout ...time.Duration) (interface{}, bool) {
 func (mb *mailbox) loop() {
 	defer close(mb.receive)
 	var actualReceive chan interface{}
+	var actualSend = mb.send
 	first := func() interface{} {
 		if mb.mails.Len() == 0 {
 			return nil
@@ -81,11 +82,12 @@ func (mb *mailbox) loop() {
 	for {
 		select {
 		case <-mb.close:
-			if mb.mails.Len() > 0 { // (?) this may cause to not close ever
+			actualSend = nil
+			if mb.mails.Len() > 0 {
 				continue
 			}
 			return
-		case v := <-mb.send:
+		case v := <-actualSend:
 			mb.mails.Append(v)
 			actualReceive = mb.receive
 		case actualReceive <- first():

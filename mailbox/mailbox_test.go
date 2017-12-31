@@ -2,6 +2,7 @@ package mailbox
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -21,7 +22,7 @@ func TestCount(t *testing.T) {
 	assert := assert.New(t)
 	store := SliceStorage{}
 	mbox := New(&store)
-	N := 10
+	N := 1000
 	go func() {
 		for i := 0; i < N; i++ {
 			mbox.Send(1)
@@ -41,6 +42,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestItems(t *testing.T) {
+	assert := assert.New(t)
 	mbox := New(&SliceStorage{})
 	N := 1000
 	go func() {
@@ -58,5 +60,42 @@ func TestItems(t *testing.T) {
 		}
 		total += v.(int)
 	}
-	assert.Equal(t, 500500, total)
+	assert.Equal(500500, total)
+}
+
+func TestSendClose(t *testing.T) {
+	assert := assert.New(t)
+	mbox := New(&SliceStorage{})
+	assert.True(mbox.Send(1))
+	mbox.Close()
+	assert.False(mbox.Send(1, time.Millisecond*10))
+}
+
+func TestRcvdClose(t *testing.T) {
+	assert := assert.New(t)
+	mbox := New(&SliceStorage{})
+	assert.True(mbox.Send(1))
+	v, ok := mbox.Receive()
+	assert.True(ok)
+	assert.Equal(1, v)
+	mbox.Close()
+	assert.False(mbox.Send(1, time.Millisecond*10))
+	v, ok = mbox.Receive()
+	assert.False(ok)
+	assert.Nil(v)
+	v, ok = mbox.Receive(time.Millisecond * 10)
+	assert.False(ok)
+	assert.Nil(v)
+}
+
+func TestRcvdCloseTimeout(t *testing.T) {
+	assert := assert.New(t)
+	mbox := New(&SliceStorage{})
+	assert.True(mbox.Send(1))
+	v, ok := mbox.Receive()
+	assert.True(ok)
+	assert.Equal(1, v)
+	v, ok = mbox.Receive(time.Millisecond * 10)
+	assert.False(ok)
+	assert.Nil(v)
 }
