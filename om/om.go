@@ -6,30 +6,24 @@ import (
 
 // generic parameters
 type (
-	keyT   = string // has to be comparable
+	keyT   = string
 	valueT = interface{}
-	keysT  = index
 )
 
-// generic zeros
-// var (
-// 	zeroKey keyT
-// )
-
-// generic parameter (being a slice<T>)
-type index []keyT
-
-func (x index) Len() int           { return len(x) }
-func (x index) Less(i, j int) bool { return x[i] < x[j] }
-func (x index) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
-
-// check implementation
-var _ sort.Interface = keysT{}
+func compareKey(k1, k2 keyT) int {
+	if k1 < k2 {
+		return -1
+	}
+	if k1 == k2 {
+		return 0
+	}
+	return 1
+}
 
 // Ordered map
 type Ordered struct {
 	_map   map[keyT]valueT
-	_order keysT
+	_order index
 }
 
 // New .
@@ -37,7 +31,7 @@ func New(sourceMap map[keyT]valueT) *Ordered {
 	if sourceMap == nil {
 		sourceMap = make(map[keyT]valueT)
 	}
-	order := make(keysT, len(sourceMap))
+	order := make(index, len(sourceMap))
 	c := 0
 	for k := range sourceMap {
 		order[c] = k
@@ -60,8 +54,21 @@ func (om *Ordered) Get(k keyT) (v valueT, ok bool) {
 // Put .
 func (om *Ordered) Put(k keyT, v valueT) {
 	om._map[k] = v
-	om._order = append(om._order, k) // TODO: find and insert? (benchmark)
-	sort.Sort(om._order)
+	l := len(om._order)
+	found := sort.Search(l, func(ix int) bool {
+		cm := compareKey(om._order[ix], k)
+		return cm >= 0
+	})
+	if found == l {
+		om._order = append(om._order, k)
+		return
+	}
+	if om._order[found] == k {
+		return
+	}
+	om._order = append(om._order, k)
+	copy(om._order[found+1:], om._order[found:])
+	om._order[found] = k
 }
 
 // ItrFn .
@@ -92,7 +99,8 @@ func (om *Ordered) Del(k keyT) {
 		return
 	}
 	found := sort.Search(l, func(ix int) bool {
-		return om._order[ix] >= k
+		cm := compareKey(om._order[ix], k)
+		return cm >= 0
 	})
 	if found == l {
 		return
@@ -101,5 +109,10 @@ func (om *Ordered) Del(k keyT) {
 		return
 	}
 	om._order = append(om._order[:found], om._order[found+1:]...)
-	sort.Sort(om._order)
 }
+
+type index []keyT
+
+func (x index) Len() int           { return len(x) }
+func (x index) Less(i, j int) bool { return compareKey(x[i], x[j]) == -1 }
+func (x index) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
