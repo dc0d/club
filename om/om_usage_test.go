@@ -135,6 +135,41 @@ func TestItr(t *testing.T) {
 	}
 }
 
+func TestItrDesc(t *testing.T) {
+	assert := assert.New(t)
+	o := New(nil)
+	for i := 1; i <= 1000; i++ {
+		is := fmt.Sprintf("%04d", i)
+		o.Put(is, i)
+		assert.Equal(len(o._map), len(o._order))
+		assert.Equal(i, len(o._order))
+	}
+	itr := o.ItrFn(true)
+	c := 1000
+	var (
+		prev1, prev2 keyT
+	)
+	for k, v, ok := itr(); ok; k, v, ok = itr() {
+		is := fmt.Sprintf("%04d", c)
+		assert.Equal(is, k)
+		assert.Equal(c, v)
+		k := k
+		assert.Condition(func() bool {
+			if prev2 == "" {
+				return true
+			}
+			if prev1 == "" {
+				return true
+			}
+			return prev2 > prev1 && prev1 > k
+		})
+		c--
+		prev1, prev2 = k, prev1
+	}
+	assert.Equal(len(o._map), len(o._order))
+	assert.Equal(1000, len(o._order))
+}
+
 func BenchmarkPut(b *testing.B) {
 	o := New(nil)
 	for n := 0; n < b.N; n++ {

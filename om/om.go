@@ -72,10 +72,21 @@ func (om *Ordered) Put(k keyT, v valueT) {
 }
 
 // ItrFn .
-func (om *Ordered) ItrFn() func() (k keyT, v valueT, ok bool) {
+func (om *Ordered) ItrFn(desc ...bool) func() (k keyT, v valueT, ok bool) {
+	dec := false
+	if len(desc) > 0 {
+		dec = desc[0]
+	}
 	var lastIndex int
+	if dec {
+		lastIndex = len(om._order) - 1
+	}
 	return func() (k keyT, v valueT, ok bool) {
 		if len(om._order) == 0 {
+			ok = false
+			return
+		}
+		if dec && lastIndex < 0 {
 			ok = false
 			return
 		}
@@ -86,7 +97,11 @@ func (om *Ordered) ItrFn() func() (k keyT, v valueT, ok bool) {
 		k = om._order[lastIndex]
 		v = om._map[k]
 		ok = true
-		lastIndex++
+		if dec {
+			lastIndex--
+		} else {
+			lastIndex++
+		}
 		return
 	}
 }
