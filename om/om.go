@@ -106,6 +106,49 @@ func (om *Ordered) ItrFn(desc ...bool) func() (k keyT, v valueT, ok bool) {
 	}
 }
 
+// ItrSeek moves to first key equal or greater than seek
+func (om *Ordered) ItrSeek(seek keyT, desc ...bool) func() (k keyT, v valueT, ok bool) {
+	dec := false
+	if len(desc) > 0 {
+		dec = desc[0]
+	}
+	l := len(om._order)
+	found := sort.Search(l, func(ix int) bool {
+		cm := compareKey(om._order[ix], seek)
+		return cm >= 0
+	})
+	var lastIndex int
+	if dec {
+		lastIndex = len(om._order) - 1
+	}
+	if found != l {
+		lastIndex = found
+	}
+	return func() (k keyT, v valueT, ok bool) {
+		if len(om._order) == 0 {
+			ok = false
+			return
+		}
+		if dec && lastIndex < 0 {
+			ok = false
+			return
+		}
+		if lastIndex >= len(om._order) {
+			ok = false
+			return
+		}
+		k = om._order[lastIndex]
+		v = om._map[k]
+		ok = true
+		if dec {
+			lastIndex--
+		} else {
+			lastIndex++
+		}
+		return
+	}
+}
+
 // Del .
 func (om *Ordered) Del(k keyT) {
 	delete(om._map, k)
